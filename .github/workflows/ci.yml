@@ -1,0 +1,52 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  scala:
+    name: Scala - compile, test, assemble
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spark-jobs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
+      - run: sbt -v test assembly
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-jar
+          path: spark-jobs/target/scala-2.12/commerce-events-pipeline.jar
+
+  producer:
+    name: Python producer - tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r producer/requirements-dev.txt
+      - run: pytest -q producer/tests
+
+  airflow:
+    name: Airflow - DAG integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          pip install "apache-airflow==2.10.2" pytest \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.10.2/constraints-3.11.txt"
+      - run: airflow db migrate
+      - run: pytest -q orchestration/tests

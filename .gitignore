@@ -1,0 +1,16 @@
+# Scala / sbt
+spark-jobs/target/
+spark-jobs/project/target/
+spark-jobs/project/project/
+.bsp/
+.metals/
+.bloop/
+.idea/
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+# Local data (Delta tables, checkpoints)
+data/
+.env
