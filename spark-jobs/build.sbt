@@ -19,18 +19,17 @@ lazy val root = (project in file("."))
     ),
     scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xlint"),
 
-    // Spark needs these module opens on Java 17.
+    // Spark needs these module opens on Java 17 (same list spark-submit adds itself).
     Test / fork := true,
     Test / javaOptions ++= Seq(
       "-Duser.timezone=UTC",
       "-Xmx2g",
-      "--add-opens=java.base/java.lang=ALL-UNNAMED",
-      "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-      "--add-opens=java.base/java.nio=ALL-UNNAMED",
-      "--add-opens=java.base/java.util=ALL-UNNAMED",
-      "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
-      "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
-    ),
+      "-XX:+IgnoreUnrecognizedVMOptions"
+    ) ++ Seq(
+      "java.lang", "java.lang.invoke", "java.lang.reflect", "java.io", "java.net", "java.nio",
+      "java.util", "java.util.concurrent", "java.util.concurrent.atomic", "jdk.internal.ref",
+      "sun.nio.ch", "sun.nio.cs", "sun.security.action", "sun.util.calendar"
+    ).map(pkg => s"--add-opens=java.base/$pkg=ALL-UNNAMED"),
     Test / parallelExecution := false,
 
     // Fat jar for spark-submit. Service files must be concatenated, not discarded,
